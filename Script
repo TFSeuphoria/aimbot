@@ -1,0 +1,45 @@
+local Library = loadstring(game:HttpGet("https://github.com/Eazvy/UILibs/blob/main/Librarys/Nightmares.fun/Example"))()
+local Window = Library.CreateLib("Phantom Forces", "Euphoria")
+
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+local camera = game.Workspace.CurrentCamera
+
+local function getClosestCharacter()
+    local closest_char = nil
+    local shortest_distance = math.huge
+
+    for _, character in pairs(game.Workspace:GetChildren()) do
+        if character:IsA("Model") and character ~= player.Character then
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            local humanoid = character:FindFirstChild("Humanoid")
+            local targetPlayer = game.Players:GetPlayerFromCharacter(character)
+            if humanoidRootPart and humanoid and humanoid.Health > 0 and targetPlayer and targetPlayer.Team ~= player.Team then
+                local distance = (humanoidRootPart.Position - player.Character.HumanoidRootPart.Position).magnitude
+                if distance < shortest_distance then
+                    closest_char = character
+                    shortest_distance = distance
+                end
+            end
+        end
+    end
+
+    return closest_char
+end
+
+local function aimAt(target)
+    if target then
+        local targetPos = target.HumanoidRootPart.Position
+        camera.CFrame = CFrame.new(camera.CFrame.Position, targetPos)
+    end
+end
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    local closest_char = getClosestCharacter()
+    if closest_char ~= nil and
+        closest_char:FindFirstChild("HumanoidRootPart") and
+        closest_char:FindFirstChild("Humanoid") and
+        closest_char:FindFirstChild("Humanoid").Health > 0 then
+        aimAt(closest_char)
+    end
+end)
