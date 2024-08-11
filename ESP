@@ -1,0 +1,89 @@
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+local userInputService = game:GetService("UserInputService")
+local players = game:GetService("Players")
+local runService = game:GetService("RunService")
+
+local outlinesEnabled = false
+
+local function createOutline(character)
+    for _, part in pairs(character:GetChildren()) do
+        if part:IsA("BasePart") then
+            local selectionBox = Instance.new("SelectionBox")
+            selectionBox.Adornee = part
+            selectionBox.Color3 = Color3.new(1, 1, 1) -- White color
+            selectionBox.Parent = part
+        end
+    end
+end
+
+local function removeOutline(character)
+    for _, part in pairs(character:GetChildren()) do
+        if part:IsA("BasePart") then
+            for _, child in pairs(part:GetChildren()) do
+                if child:IsA("SelectionBox") then
+                    child:Destroy()
+                end
+            end
+        end
+    end
+end
+
+local function updateDisplay()
+    for _, otherPlayer in pairs(players:GetPlayers()) do
+        if otherPlayer ~= player then
+            local character = otherPlayer.Character
+            if character and character:FindFirstChild("Head") then
+                local head = character.Head
+                local distance = (head.Position - player.Character.Head.Position).Magnitude
+                local billboardGui = head:FindFirstChild("BillboardGui")
+
+                if not billboardGui then
+                    billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Name = "BillboardGui"
+                    billboardGui.Size = UDim2.new(0, 200, 0, 50)
+                    billboardGui.Adornee = head
+                    billboardGui.Parent = head
+
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Name = "TextLabel"
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.TextColor3 = Color3.new(1, 1, 1) -- White color
+                    textLabel.TextStrokeTransparency = 0
+                    textLabel.Parent = billboardGui
+                end
+
+                billboardGui.TextLabel.Text = otherPlayer.Name .. " (" .. math.floor(distance) .. " studs)"
+                billboardGui.Enabled = outlinesEnabled
+            end
+        end
+    end
+end
+
+local function toggleOutlines()
+    outlinesEnabled = not outlinesEnabled
+
+    for _, otherPlayer in pairs(players:GetPlayers()) do
+        if otherPlayer ~= player then
+            local character = otherPlayer.Character
+            if character then
+                if outlinesEnabled then
+                    createOutline(character)
+                else
+                    removeOutline(character)
+                end
+            end
+        end
+    end
+
+    updateDisplay()
+end
+
+userInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.Q and not gameProcessed then
+        toggleOutlines()
+    end
+end)
+
+runService.RenderStepped:Connect(updateDisplay)
