@@ -30,6 +30,34 @@ local function lockOntoTarget(target)
     end
 end
 
+local function createESP(player)
+    local highlight = Instance.new("Highlight")
+    highlight.Adornee = player.Character
+    highlight.FillColor = Color3.fromRGB(139, 0, 0)
+    highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.Parent = player.Character
+end
+
+local function removeESP(player)
+    if player.Character and player.Character:FindFirstChildOfClass("Highlight") then
+        player.Character:FindFirstChildOfClass("Highlight"):Destroy()
+    end
+end
+
+local function updateESP()
+    for _, otherPlayer in pairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Team ~= player.Team and otherPlayer.Character then
+            if not otherPlayer.Character:FindFirstChildOfClass("Highlight") then
+                createESP(otherPlayer)
+            end
+        else
+            removeESP(otherPlayer)
+        end
+    end
+end
+
 local tracking = false
 local target = nil
 
@@ -46,4 +74,5 @@ RunService.RenderStepped:Connect(function()
     if tracking and target then
         lockOntoTarget(target)
     end
+    updateESP()
 end)
